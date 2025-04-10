@@ -1,8 +1,9 @@
-# create custom Server 
+# Create a Custom Server
 
 > Get started building your own server to use in Claude for Desktop and other clients.
 
 In this tutorial, we'll build a simple MCP calculator server and connect it to a host, Claude for Desktop.
+
 ## What is MCP?
 
 **MCP** stands for **Model Context Protocol** — it’s a protocol that allows developers to extend AI assistants (like Claude) with custom tools and servers.
@@ -11,233 +12,223 @@ In this tutorial, we'll build a simple MCP calculator server and connect it to a
 - These servers expose tools or functionalities that the assistant can use during a conversation.
 - For example: you can build weather servers, calculators, finance assistants, or anything you imagine.
 
-### What we'll be building
+### What We'll Be Building
 
 We'll build a server that exposes four tools: `add`, `subtract`, `multiply`, and `divide`. Then we'll connect the server to an MCP host (in this case, Claude for Desktop):
 
-<Note>
-    Servers can connect to any client. We've chosen Claude for Desktop here for demonstration purposes.
-</Note>
+> **Note**: Servers can connect to any client. We've chosen Claude for Desktop here for demonstration purposes.
 
-<Accordion title="Why Claude for Desktop and not Claude.ai?">
-    Because servers are locally run, MCP currently only supports desktop hosts.
-</Accordion>
+<details>
+<summary>Why Claude for Desktop and not Claude.ai?</summary>
+Because servers are locally run, MCP currently only supports desktop hosts.
+</details>
 
 ### Core MCP Concepts
 
 MCP servers can provide three main types of capabilities:
 
-1. **Resources**: File-like data that can be read by clients (like API responses or file contents)
-2. **Tools**: Functions that can be called by the LLM (with user approval)
-3. **Prompts**: Pre-written templates that help users accomplish specific tasks
+1. **Resources**: File-like data that can be read by clients (like API responses or file contents).
+2. **Tools**: Functions that can be called by the LLM (with user approval).
+3. **Prompts**: Pre-written templates that help users accomplish specific tasks.
 
 This tutorial will primarily focus on tools.
 
-<Tabs>
-    <Tab title="Python">
-        Let's get started with building our calculator server! [You can find the complete code for what we'll be building here.](https://github.com/varunidealabs/simple-calculator-mcp-server.git)
+Let's get started with building our calculator server! [You can find the complete code for what we'll be building here.](https://github.com/varunidealabs/simple-calculator-mcp-server.git)
 
-        ### Prerequisite knowledge
+---
 
-        This quickstart assumes you have familiarity with:
+### Prerequisite Knowledge
 
-        * Python
-        * LLMs like Claude
+This quickstart assumes you have familiarity with:
 
-        ### System requirements
+- Python
+- LLMs like Claude
 
-        * Python 3.10 or higher installed.
-        * You must use the Python MCP SDK 1.2.0 or higher.
+### System Requirements
 
-        ### Set up your environment
+- Python 3.10 or higher installed.
+- You must use the Python MCP SDK 1.2.0 or higher.
 
-        First, let's install `uv` and set up our Python project and environment:
+---
 
-        <CodeGroup>
-            ```bash MacOS/Linux
-            curl -LsSf https://astral.sh/uv/install.sh | sh
-            ```
+### Set Up Your Environment
 
-            ```powershell Windows
-            powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-            ```
-        </CodeGroup>
+First, let's install `uv` and set up our Python project and environment:
 
-        Make sure to restart your terminal afterwards to ensure that the `uv` command gets picked up.
+#### MacOS/Linux
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-        Now, let's create and set up our project:
+#### Windows
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
-        <CodeGroup>
-            ```bash MacOS/Linux
-            # Create a new directory for our project
-            uv init calculator
-            cd calculator
+Make sure to restart your terminal afterwards to ensure that the `uv` command gets picked up.
 
-            # Create virtual environment and activate it
-            uv venv
-            source .venv/bin/activate
+Now, let's create and set up our project:
 
-            # Install dependencies
-            uv add "mcp[cli]"
+#### MacOS/Linux
+```bash
+# Create a new directory for our project
+uv init calculator
+cd calculator
 
-            # Create our server file
-            touch calculator.py
-            ```
+# Create virtual environment and activate it
+uv venv
+source .venv/bin/activate
 
-            ```powershell Windows
-            # Create a new directory for our project
-            uv init calculator
-            cd calculator
+# Install dependencies
+uv add "mcp[cli]"
 
-            # Create virtual environment and activate it
-            uv venv
-            .venv\Scripts\activate
+# Create our server file
+touch calculator.py
+```
 
-            # Create our server file
-            new-item calculator.py
-            ```
-        </CodeGroup>
+#### Windows
+```powershell
+# Create a new directory for our project
+uv init calculator
+cd calculator
 
-        Now let's dive into building your server.
+# Create virtual environment and activate it
+uv venv
+.venv\Scripts\activate
 
-        ## Building your server
+# Install dependencies
+uv add "mcp[cli]"
 
-        ### Importing packages and setting up the instance
+# Create our server file
+new-item calculator.py
+```
 
-        Add these to the top of your `calculator.py`:
+Now let's dive into building your server.
 
-        ```python
-        from mcp.server.fastmcp import FastMCP
+---
 
-        # Initialize FastMCP server
-        mcp = FastMCP("calculator")
-        ```
+## Building Your Server
 
-        ### Implementing tool execution
+### Importing Packages and Setting Up the Instance
 
-        The tool execution handler is responsible for actually executing the logic of each tool. Let's add it:
+Add these to the top of your `calculator.py`:
 
-        ```python
-        @mcp.tool()
-        def add(a: float, b: float) -> float:
-            """Add two numbers."""
-            return a + b
+```python
+from mcp.server.fastmcp import FastMCP
 
-        @mcp.tool()
-        def subtract(a: float, b: float) -> float:
-            """Subtract two numbers."""
-            return a - b
+# Initialize FastMCP server
+mcp = FastMCP("calculator")
+```
 
-        @mcp.tool()
-        def multiply(a: float, b: float) -> float:
-            """Multiply two numbers."""
-            return a * b
+### Implementing Tool Execution
 
-        @mcp.tool()
-        def divide(a: float, b: float) -> float:
-            """Divide two numbers."""
-            if b == 0:
-                raise ValueError("Division by zero is not allowed.")
-            return a / b
-        ```
+The tool execution handler is responsible for actually executing the logic of each tool. Let's add it:
 
-        ### Running the server
+```python
+@mcp.tool()
+def add(a: float, b: float) -> float:
+    """Add two numbers."""
+    return a + b
 
-        Finally, let's initialize and run the server:
+@mcp.tool()
+def subtract(a: float, b: float) -> float:
+    """Subtract two numbers."""
+    return a - b
 
-        ```python
-        if __name__ == "__main__":
-            # Initialize and run the server
-            mcp.run(transport='stdio')
-        ```
+@mcp.tool()
+def multiply(a: float, b: float) -> float:
+    """Multiply two numbers."""
+    return a * b
 
-        Your server is complete! Run `uv run calculator.py` to confirm that everything's working.
+@mcp.tool()
+def divide(a: float, b: float) -> float:
+    """Divide two numbers."""
+    if b == 0:
+        raise ValueError("Division by zero is not allowed.")
+    return a / b
+```
 
-        Let's now test your server from an existing MCP host, Claude for Desktop.
+### Running the Server
 
-        ## Testing your server with Claude for Desktop
+Finally, let's initialize and run the server:
 
-        <Note>
-            Claude for Desktop is not yet available on Linux.
-        </Note>
+```python
+if __name__ == "__main__":
+    # Initialize and run the server
+    mcp.run(transport='stdio')
+```
 
-        We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
+Your server is complete! Run `uv run calculator.py` to confirm that everything's working.
 
-        <Tabs>
-            <Tab title="MacOS/Linux">
-                ```bash
-                code ~/Library/Application\ Support/Claude/claude_desktop_config.json
-                ```
-            </Tab>
+---
 
-            <Tab title="Windows">
-                ```powershell
-                code $env:AppData\Claude\claude_desktop_config.json
-                ```
-            </Tab>
-        </Tabs>
+## Testing Your Server with Claude for Desktop
 
-        You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
+> **Note**: Claude for Desktop is not yet available on Linux.
 
-        In this case, we'll add our single calculator server like so:
+We'll need to configure Claude for Desktop for whichever MCP servers you want to use. To do this, open your Claude for Desktop App configuration at `~/Library/Application Support/Claude/claude_desktop_config.json` in a text editor. Make sure to create the file if it doesn't exist.
 
-        <Tabs>
-            <Tab title="MacOS/Linux">
-                ```json Python
-                {
-                    "mcpServers": {
-                        "calculator": {
-                            "command": "uv",
-                            "args": [
-                                "--directory",
-                                "/ABSOLUTE/PATH/TO/PARENT/FOLDER/calculator",
-                                "run",
-                                "calculator.py"
-                            ]
-                        }
-                    }
-                }
-                ```
-            </Tab>
+#### MacOS/Linux
+```bash
+code ~/Library/Application\ Support/Claude/claude_desktop_config.json
+```
 
-            <Tab title="Windows">
-                ```json Python
-                {
-                    "mcpServers": {
-                        "calculator": {
-                            "command": "uv",
-                            "args": [
-                                "--directory",
-                                "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\calculator",
-                                "run",
-                                "calculator.py"
-                            ]
-                        }
-                    }
-                }
-                ```
-            </Tab>
-        </Tabs>
+#### Windows
+```powershell
+code $env:AppData\Claude\claude_desktop_config.json
+```
 
-        <Warning>
-            You may need to put the full path to the `uv` executable in the `command` field. You can get this by running `which uv` on MacOS/Linux or `where uv` on Windows.
-        </Warning>
+You'll then add your servers in the `mcpServers` key. The MCP UI elements will only show up in Claude for Desktop if at least one server is properly configured.
 
-        <Note>
-            Make sure you pass in the absolute path to your server.
-        </Note>
+In this case, we'll add our single calculator server like so:
 
-        This tells Claude for Desktop:
+#### MacOS/Linux
+```json
+{
+    "mcpServers": {
+        "calculator": {
+            "command": "uv",
+            "args": [
+                "--directory",
+                "/ABSOLUTE/PATH/TO/PARENT/FOLDER/calculator",
+                "run",
+                "calculator.py"
+            ]
+        }
+    }
+}
+```
 
-        1. There's an MCP server named "calculator"
-        2. To launch it by running `uv --directory /ABSOLUTE/PATH/TO/PARENT/FOLDER/calculator run calculator.py`
+#### Windows
+```json
+{
+    "mcpServers": {
+        "calculator": {
+            "command": "uv",
+            "args": [
+                "--directory",
+                "C:\\ABSOLUTE\\PATH\\TO\\PARENT\\FOLDER\\calculator",
+                "run",
+                "calculator.py"
+            ]
+        }
+    }
+}
+```
 
-        Save the file, and restart **Claude for Desktop**.
-    </Tab>
-</Tabs>
+> **Warning**: You may need to put the full path to the `uv` executable in the `command` field. You can get this by running `which uv` on MacOS/Linux or `where uv` on Windows.
 
-<Note>
-    Since this calculator supports basic arithmetic operations, it can be used for addition, subtraction, multiplication, and division.
-</Note>
+Make sure you pass in the absolute path to your server.
+
+This tells Claude for Desktop:
+
+1. There's an MCP server named "calculator".
+2. To launch it by running `uv --directory /ABSOLUTE/PATH/TO/PARENT/FOLDER/calculator run calculator.py`.
+
+Save the file, and restart **Claude for Desktop**.
+
+---
+
+Since this calculator supports basic arithmetic operations, it can be used for addition, subtraction, multiplication, and division.
 
 For more info: [MCP Official Docs](https://modelcontextprotocol.io/quickstart/server)
