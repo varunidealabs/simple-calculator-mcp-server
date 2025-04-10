@@ -231,4 +231,4 @@ Save the file, and restart **Claude for Desktop**.
 
 Since this calculator supports basic arithmetic operations, it can be used for addition, subtraction, multiplication, and division.
 
-For more info: [MCP Official Docs](https://modelcontextprotocol.io/quickstart/server)
+For more info: [MCP Official Docs](https://modelcontextprotocol.io/introduction)
