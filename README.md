@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/varunidealabs-simple-calculator-mcp-server-badge.png)](https://mseep.ai/app/varunidealabs-simple-calculator-mcp-server)
+
 # Create a Custom Server
 
 > Get started building your own server to use in Claude for Desktop and other clients.
